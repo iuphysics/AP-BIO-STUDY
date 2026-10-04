@@ -25,13 +25,15 @@ source = pdf.open(args.pdf)
 clean = pdf.open(args.pdf)
 TOP, BOTTOM, LEFT, RIGHT = 60, 765, 36, 576
 
-# The guide uses these pale-green/green paints for a keyed option. Make them
-# white only in student-facing crops; explanation and rubric crops stay exact.
+# The guide uses these pale-green/green paints for a keyed option and check.
+# Make them white only in student-facing crops; explanations and rubrics stay exact.
 for page in clean:
     for xref in page.get_contents():
         stream = clean.xref_stream(xref)
         stream = re.sub(rb"\.902 1 \.902 (rg|RG)", rb"1 1 1 \1", stream)
+        stream = re.sub(rb"\.89 1 \.871 (rg|RG)", rb"1 1 1 \1", stream)
         stream = re.sub(rb"\.2275 \.5686 \.2471 (rg|RG)", rb"1 1 1 \1", stream)
+        stream = re.sub(rb"0 \.502 0 (rg|RG)", rb"1 1 1 \1", stream)
         clean.update_stream(xref, stream)
 
 starts, option_markers = [], []
