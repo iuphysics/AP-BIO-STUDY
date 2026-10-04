@@ -27,14 +27,19 @@ TOP, BOTTOM, LEFT, RIGHT = 60, 765, 36, 576
 
 # The guide uses these pale-green/green paints for a keyed option and check.
 # Make them white only in student-facing crops; explanations and rubrics stay exact.
-for page in clean:
-    for xref in page.get_contents():
+for xref in range(1, clean.xref_length()):
+    try:
         stream = clean.xref_stream(xref)
-        stream = re.sub(rb"\.902 1 \.902 (rg|RG)", rb"1 1 1 \1", stream)
-        stream = re.sub(rb"\.89 1 \.871 (rg|RG)", rb"1 1 1 \1", stream)
-        stream = re.sub(rb"\.2275 \.5686 \.2471 (rg|RG)", rb"1 1 1 \1", stream)
-        stream = re.sub(rb"0 \.502 0 (rg|RG)", rb"1 1 1 \1", stream)
-        clean.update_stream(xref, stream)
+    except RuntimeError:
+        continue
+    if stream is None:
+        continue
+    sanitized = re.sub(rb"0?\.902 1 0?\.902 (rg|RG)", rb"1 1 1 \1", stream)
+    sanitized = re.sub(rb"0?\.89 1 0?\.871 (rg|RG)", rb"1 1 1 \1", sanitized)
+    sanitized = re.sub(rb"0?\.2275 0?\.5686 0?\.2471 (rg|RG)", rb"1 1 1 \1", sanitized)
+    sanitized = re.sub(rb"0 0?\.502 0 (rg|RG)", rb"1 1 1 \1", sanitized)
+    if sanitized != stream:
+        clean.update_stream(xref, sanitized)
 
 starts, option_markers = [], []
 for page_index, page in enumerate(source):
@@ -69,6 +74,14 @@ def crop(start, end, prefix, *, original=False, left=LEFT, right=RIGHT):
         clip = pdf.Rect(left, y0, right, y1)
         pixmap = doc[page_index].get_pixmap(matrix=pdf.Matrix(1.0, 1.0), clip=clip, alpha=False)
         image = Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
+        if not original and re.search(r"-[A-E]$", prefix):
+            # A few answer rectangles/checks are embedded raster objects, so
+            # they survive PDF paint-color replacement. Remove that keyed green
+            # from student-facing crops after rasterization as a final pass.
+            image.putdata([
+                (255, 255, 255) if green > red + 8 and green > blue + 8 and green > 75 else (red, green, blue)
+                for red, green, blue in image.getdata()
+            ])
         bbox = ImageChops.difference(image, Image.new("RGB", image.size, "white")).getbbox()
         if not bbox:
             continue
