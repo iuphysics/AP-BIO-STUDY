@@ -6,12 +6,12 @@ import { validateEndpoint } from '../tutor.js';
 
 const { questions } = JSON.parse(await readFile(new URL('../questions.json', import.meta.url)));
 const byId = new Map(questions.map(q => [q.id, q]));
-const body = { questionId: 36, messages: [{ role: 'user', content: 'Explain this model' }] };
+const body = { questionId: 1, messages: [{ role: 'user', content: 'Explain this question' }] };
 const env = { OPENAI_API_KEY: 'test-secret', TUTOR_ACCESS_CODE: 'class-code' };
 const request = (data = body, code = 'class-code', origin = 'https://iuphysics.github.io') => new Request('http://localhost/api/chat', {
   method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tutor-Code': code, Origin: origin }, body: JSON.stringify(data)
 });
-test('current original question includes shared figures and hides scoring in hints mode', () => {
+test('Unit 2 questions include source images and hide scoring in hints mode', () => {
   for (const question of questions) {
     const input = buildTutorInput(question, body, 'https://iuphysics.github.io/ap-bio-practice/');
     const reference = input[0].content[0].text;
@@ -20,9 +20,8 @@ test('current original question includes shared figures and hides scoring in hin
     assert.ok(!reference.includes('"scoringMaterial":'));
     for (const image of [...question.context, ...question.prompt]) assert.ok(input[0].content.some(c => c.image_url?.endsWith(image.src)));
   }
-  assert.ok(byId.get(36).context.length);
-  const revealed = buildTutorInput(byId.get(36), { ...body, allowAnswers: true }, 'https://example.com/')[0].content[0].text;
-  assert.ok(revealed.includes(`"correctAnswer":"${byId.get(36).correct}"`));
+  const revealed = buildTutorInput(byId.get(1), { ...body, allowAnswers: true }, 'https://example.com/')[0].content[0].text;
+  assert.ok(revealed.includes(`"correctAnswer":"${byId.get(1).correct}"`));
 });
 test('invalid question, system roles, oversized content and malformed turns are rejected', () => {
   assert.equal(validateChat(body, byId), null);
@@ -50,7 +49,7 @@ test('upstream gets authoritative context, secret only in auth, and responses ar
   } });
   const response = await handle(request({ ...body, images: ['malicious-image'] }));
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { questionId: 36, reply: 'Consider the bonds.' });
+  assert.deepEqual(await response.json(), { questionId: 1, reply: 'Consider the bonds.' });
   assert.equal((await handle(request())).status, 429);
   assert.equal(calls, 1);
 });

@@ -1,6 +1,6 @@
 # Helix — AP Biology practice
 
-A small, static study app containing the **126 exact questions** from the supplied 155-page AP Biology scoring guide: **95 MCQs and 31 FRQs**.
+A small, static study app containing the **277 questions** from the supplied 346-page AP Biology Unit 2 scoring guide: **183 MCQs and 94 FRQs**.
 
 **Open the app:** https://iuphysics.github.io/ap-bio-practice/
 
@@ -44,9 +44,7 @@ The owner pays for API usage. Configure provider usage alerts/limits and monitor
 
 ## Source fidelity
 
-Questions, figures, tables, mathematical notation, and scoring criteria are retained as lossless source crops. Simple prose options also have responsive text; their exact original crops remain available in the enlarged view. Correct-answer green backgrounds, borders, and check marks are removed from question assets before rendering. All 95 correct options are read from the source highlighting and checked against the written keys wherever supplied. The extraction audit is in `scripts/extraction-audit.json`.
-
-Shared source panels are explicitly mapped to questions 16–19, 35–37, 41–44, and 48–50. In particular, the raster-only Models 1–3 on PDF page 25 accompany both questions 36 and 37 from page 26. Shared material opens automatically on each question, including after shuffling. No diagrams or explanations have been invented. Some original scoring guides repeat their criteria; those repeats are preserved.
+Questions, figures, tables, mathematical notation, and scoring criteria are retained as source crops. Correct-answer highlighting is removed from student-facing assets. Answer keys come from either the guide's written key or its highlighted correct option; the extraction audit is in `scripts/extraction-audit.json`.
 
 The answer key is bundled client-side, suitable for self-study rather than secure exams. Answers are hidden in the study interface until a response is made, not protected against inspection of downloaded files.
 
@@ -63,9 +61,9 @@ To regenerate the question bank from the original file:
 
 ```sh
 python -m pip install -r scripts/requirements.txt
-python scripts/extract_pdf.py /path/to/FILE_2835.pdf
+python scripts/extract_unit2_pdf.py /path/to/AP_Bio_Unit_2.pdf
 ```
 
-This extractor is intentionally specific to this document. It checks question counts, option order, source highlights, written answer keys, and FRQ boundaries. It never changes the source PDF. Normal app use needs only the committed assets, not Python or the PDF.
+This extractor is tailored to the Unit 2 scoring guide. It validates question numbering, option sequences, answer keys, FRQ boundaries, and output assets. It never changes the source PDF. Normal app use needs only the committed assets, not Python or the PDF.
 
 The app is plain HTML/CSS/JavaScript and can be hosted on any static host. Publish only with appropriate permission to share the question material. The local server binds to loopback. Google Fonts are optional; system font fallbacks work without them.
